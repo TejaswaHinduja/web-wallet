@@ -1,5 +1,4 @@
 "use client"
-import {mn,seed} from "../utils/genmonic"
 import { Button } from "@/components/ui/button"
 import { generateMnemonic,mnemonicToSeedSync } from "bip39"
 import nacl from "tweetnacl";
@@ -11,15 +10,29 @@ export function Genwallet(){
     const [mn,setMn]=useState("")   
     //@ts-ignore
     const [seed,setSeed]=useState<any>(null)
-    const[currentIndex,setCurrentIndex]=useState()
+    const [currentIndex,setCurrentIndex]=useState()
     const path = `m/44'/501'/${currentIndex}'/0'`;
     const derivedSeed = derivePath(path, seed.toString("hex")).key;
     return <div>
-        <Button onClick={()=>setMn(generateMnemonic())}>Generate Mneomonic</Button>
-        <Button onClick={()=>setSeed(mnemonicToSeedSync(mn))}>Show seed</Button>
+        <Button onClick={()=>{
+            const m=generateMnemonic();
+            setMn(m);
+            setSeed(null);
+        }}>
+            Generate Mneomonic
+        </Button>
+
+        <Button disabled={!mn}
+        onClick={()=>{
+            const s=mnemonicToSeedSync(mn);
+            setSeed(s);
+        }}>
+            Show seed
+        </Button>
+
         <Button onClick={()=>{}}></Button>
 
-        {mn}
-        {seed}
+        <div>{mn}</div>
+        <div>{seed && seed.toString("hex")}</div>
     </div>
 }
