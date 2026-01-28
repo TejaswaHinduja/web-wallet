@@ -11,10 +11,10 @@ export function Genwallet(){
     //@ts-ignore
     const [seed,setSeed]=useState<any>(null)
     const [currentIndex,setCurrentIndex]=useState()
-    const path = `m/44'/501'/${currentIndex}'/0'`;
-    const derivedSeed = derivePath(path, seed.toString("hex")).key;
+    
     return <div>
-        <Button onClick={()=>{
+        <Button className="cursor-pointer"
+        onClick={()=>{
             const m=generateMnemonic();
             setMn(m);
             setSeed(null);
@@ -22,7 +22,8 @@ export function Genwallet(){
             Generate Mneomonic
         </Button>
 
-        <Button disabled={!mn}
+        <Button className="cursor-pointer"
+        disabled={!mn}
         onClick={()=>{
             const s=mnemonicToSeedSync(mn);
             setSeed(s);
