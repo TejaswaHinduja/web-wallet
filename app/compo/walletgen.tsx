@@ -11,6 +11,7 @@ export function Genwallet(){
     const [seed,setSeed]=useState<any>(null)
     const [pubkey,setPubKey]=useState<string[]>([])
     const [currentIndex,setCurrentIndex]=useState(0)
+    const [privkey,setPrivKey]=useState<Uint8Array<ArrayBufferLike>| any>([])
     
     return <div className="w-full max-w-4xl mx-auto pb-8">
         <div className="flex gap-3 justify-center flex-wrap">
@@ -47,6 +48,11 @@ export function Genwallet(){
                         ...prev,
                         keypair.publicKey.toBase58()
                     ]);
+                    //@ts-ignore
+                    setPrivKey(prev=>[
+                        ...prev,
+                        keypair.secretKey
+                    ])
                     setCurrentIndex(prev=>prev+1)
                 }}>
                 Generate Wallet
@@ -88,15 +94,28 @@ export function Genwallet(){
                     {pubkey.map((pk, i) => (
                         <div key={i} className="bg-gray-50 p-3 rounded border border-gray-200">
                             <div className="text-xs font-medium text-gray-500 mb-1">
-                                Wallet #{i + 1}
+                                Wallet #{i+1}
                             </div>
                             <p className="text-gray-800 font-mono text-xs break-all">
                                 {pk}
                             </p>
                         </div>
                     ))}
+                     {//@ts-ignore
+                    privkey.map((prk, j) => (
+                        <div key={j} className="bg-gray-50 p-3 rounded border border-gray-200">
+                            <div className="text-xs font-medium text-gray-500 mb-1">
+                                wallet#{j+1}Private Key
+                            </div>
+                            <p className="text-gray-800 font-mono text-xs break-all">
+                                {prk}
+                            </p>
+                        </div>
+                    ))}
+
                 </div>
             </div>
         )}
+        
     </div>
 }
