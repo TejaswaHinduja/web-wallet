@@ -1,10 +1,10 @@
 "use client"
 import { Button } from "@/components/ui/button"
-import { generateMnemonic,mnemonicToSeedSync } from "bip39"
+import { generateMnemonic, mnemonicToSeedSync, validateMnemonic } from "bip39"
 import { derivePath } from "ed25519-hd-key";
 import { Keypair} from "@solana/web3.js"
 import { useState } from "react"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, Import, Trash2 } from "lucide-react"
 
 interface Wallet {
     publicKey: string;
@@ -18,6 +18,9 @@ export function Genwallet(){
     const [wallets,setWallets]=useState<Wallet[]>([])
     const [currentIndex,setCurrentIndex]=useState(0)
     const [visiblePrivateKeys, setVisiblePrivateKeys] = useState<{[key: number]: boolean}>({})
+    const [importMode, setImportMode] = useState(false)
+    const [importInput, setImportInput] = useState("")
+    const [error, setError] = useState("")
     
     const togglePrivateKeyVisibility = (index: number) => {
         setVisiblePrivateKeys(prev => ({
@@ -26,23 +29,68 @@ export function Genwallet(){
         }))
     }
 
+    const handleImportMnemonic = () => {
+        setError("")
+        const trimmedInput = importInput.trim()
+        
+        if (!validateMnemonic(trimmedInput)) {
+            setError("Invalid mnemonic phrase. Please check and try again.")
+            return
+        }
+
+        // Set the mnemonic
+        setMn(trimmedInput)
+        
+        // Automatically generate seed
+        const s = mnemonicToSeedSync(trimmedInput)
+        setSeed(s)
+        
+        // Automatically derive the first wallet
+        const path = `m/44'/501'/0'/0'`
+        const deriveSeed = derivePath(path, s.toString("hex")).key
+        const keypair = Keypair.fromSeed(deriveSeed)
+        
+        setWallets([{
+            publicKey: keypair.publicKey.toBase58(),
+            privateKey: keypair.secretKey
+        }])
+        setCurrentIndex(1) // Start from 1 since we already generated wallet 0
+        setVisiblePrivateKeys({})
+        setImportInput("")
+        setImportMode(false)
+    }
+
+    const handleGenerateMnemonic = () => {
+        const m = generateMnemonic();
+        setMn(m);
+        setSeed(null);
+        setWallets([]);
+        setCurrentIndex(0);
+        setVisiblePrivateKeys({});
+        setError("");
+        setImportMode(false);
+    }
+
     return <div className="w-full max-w-4xl mx-auto pb-8">
-        <div className="flex gap-3 justify-center flex-wrap">
+        <div className="flex gap-3 justify-center flex-wrap mb-4">
             <Button 
-                className="px-4 py-2 text-sm shadow-sm"
-                onClick={()=>{
-                    const m=generateMnemonic();
-                    setMn(m);
-                    setSeed(null);
-                    setWallets([]);
-                    setCurrentIndex(0);
-                    setVisiblePrivateKeys({});
-                }}>
+                className="px-4 py-2 text-sm shadow-lg bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                onClick={handleGenerateMnemonic}>
                 Generate Mnemonic
             </Button>
 
             <Button 
-                className="px-4 py-2 text-sm shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm shadow-lg bg-purple-600 hover:bg-purple-700 text-white font-medium"
+                onClick={() => {
+                    setImportMode(!importMode)
+                    setError("")
+                }}>
+                <Import className="w-4 h-4 mr-2" />
+                {importMode ? "Cancel Import" : "Import Mnemonic"}
+            </Button>
+
+            <Button 
+                className="px-4 py-2 text-sm shadow-lg bg-green-600 hover:bg-green-700 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-gray-700"
                 disabled={!mn}
                 onClick={()=>{
                     const s=mnemonicToSeedSync(mn);
@@ -52,7 +100,7 @@ export function Genwallet(){
             </Button>
 
             <Button 
-                className="px-4 py-2 text-sm shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm shadow-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-gray-700"
                 disabled={!seed}
                 onClick={()=>{
                     const path=`m/44'/501'/${currentIndex}'/0'`
@@ -69,7 +117,75 @@ export function Genwallet(){
                 }}>
                 Generate Wallet
             </Button>
+
+            {(mn || wallets.length > 0) && (
+                <Button 
+                    className="px-4 py-2 text-sm shadow-lg bg-red-600 hover:bg-red-700 text-white font-medium"
+                    onClick={() => {
+                        setMn("")
+                        setSeed(null)
+                        setWallets([])
+                        setCurrentIndex(0)
+                        setVisiblePrivateKeys({})
+                        setError("")
+                        setImportMode(false)
+                        setImportInput("")
+                    }}>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Clear All
+                </Button>
+            )}
         </div>
+
+        {/* Import Mnemonic Section */}
+        {importMode && (
+            <div className="bg-gray-800 rounded-lg border border-purple-600 p-4 shadow-lg mb-4 animate-in fade-in duration-200">
+                <h3 className="text-sm font-medium mb-3 text-purple-300 flex items-center">
+                    <Import className="w-4 h-4 mr-2" />
+                    Import Existing Wallet
+                </h3>
+                <p className="text-xs text-gray-400 mb-3">
+                    Enter your 12 or 24 word mnemonic phrase to recover your wallet. 
+                    Your first wallet will be automatically generated. You can then generate additional wallets if needed.
+                </p>
+                <p className="text-xs text-red-400 mb-3">
+                    ⚠️ Make sure you trust this application before entering your seed phrase.
+                </p>
+                <textarea
+                    value={importInput}
+                    onChange={(e) => {
+                        setImportInput(e.target.value)
+                        setError("")
+                    }}
+                    placeholder="Enter your mnemonic phrase here (e.g., word1 word2 word3 ...)"
+                    className="w-full bg-gray-900 text-gray-100 p-3 rounded border border-gray-700 focus:border-purple-500 focus:outline-none font-mono text-xs min-h-[100px] resize-y"
+                />
+                {error && (
+                    <div className="mt-2 text-xs text-red-400 bg-red-950/50 border border-red-800 rounded p-2">
+                        {error}
+                    </div>
+                )}
+                <div className="flex gap-2 mt-3">
+                    <Button 
+                        onClick={handleImportMnemonic}
+                        disabled={!importInput.trim()}
+                        className="px-4 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-gray-700"
+                    >
+                        Import Wallet
+                    </Button>
+                    <Button 
+                        onClick={() => {
+                            setImportMode(false)
+                            setImportInput("")
+                            setError("")
+                        }}
+                        className="px-4 py-2 text-sm bg-gray-600 hover:bg-gray-700 text-white font-medium"
+                    >
+                        Cancel
+                    </Button>
+                </div>
+            </div>
+        )}
 
         {mn && (
             <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 shadow-sm mt-4">
@@ -81,6 +197,9 @@ export function Genwallet(){
                         {mn}
                     </p>
                 </div>
+                <p className="text-xs text-yellow-500 mt-2 flex items-center">
+                    ⚠️ Never share your mnemonic phrase with anyone. Store it securely offline.
+                </p>
             </div>
         )}
 
