@@ -38,10 +38,7 @@ export function Genwallet(){
             return
         }
 
-        // Set the mnemonic
         setMn(trimmedInput)
-        
-        // Automatically generate seed
         const s = mnemonicToSeedSync(trimmedInput)
         setSeed(s)
         
