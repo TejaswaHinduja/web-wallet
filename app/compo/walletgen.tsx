@@ -51,7 +51,7 @@ export function Genwallet(){
             publicKey: keypair.publicKey.toBase58(),
             privateKey: keypair.secretKey
         }])
-        setCurrentIndex(1) // Start from 1 since we already generated wallet 0
+        setCurrentIndex(1) 
         setVisiblePrivateKeys({})
         setImportInput("")
         setImportMode(false)
@@ -112,7 +112,7 @@ export function Genwallet(){
                     ]);
                     setCurrentIndex(prev=>prev+1)
                 }}>
-                Generate Wallet
+                Add Wallet
             </Button>
 
             {(mn || wallets.length > 0) && (
@@ -145,9 +145,6 @@ export function Genwallet(){
                     Enter your 12 or 24 word mnemonic phrase to recover your wallet. 
                     Your first wallet will be automatically generated. You can then generate additional wallets if needed.
                 </p>
-                <p className="text-xs text-red-400 mb-3">
-                    ⚠️ Make sure you trust this application before entering your seed phrase.
-                </p>
                 <textarea
                     value={importInput}
                     onChange={(e) => {
@@ -163,12 +160,14 @@ export function Genwallet(){
                     </div>
                 )}
                 <div className="flex gap-2 mt-3">
-                    <Button 
-                        onClick={handleImportMnemonic}
-                        disabled={!importInput.trim()}
-                        className="px-4 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-gray-700"
-                    >
-                        Import Wallet
+                    <Button asChild>
+                        <button
+                            onClick={handleImportMnemonic}
+                            disabled={!importInput.trim()}
+                            className="px-4 py-2 text-sm bg-black hover:bg-gray-700 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                            Import Wallet
+                        </button>
                     </Button>
                     <Button 
                         onClick={() => {
