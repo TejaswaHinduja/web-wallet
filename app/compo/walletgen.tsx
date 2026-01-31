@@ -77,7 +77,7 @@ export function Genwallet(){
             </Button>
 
             <Button 
-                className="px-4 py-2 text-sm shadow-lg bg-purple-600 hover:bg-purple-700 text-white font-medium"
+                className="px-4 py-2 text-sm shadow-lg bg-red-600 hover:bg-red-700 text-white font-medium"
                 onClick={() => {
                     setImportMode(!importMode)
                     setError("")
@@ -136,8 +136,8 @@ export function Genwallet(){
 
         {/* Import Mnemonic Section */}
         {importMode && (
-            <div className="bg-gray-800 rounded-lg border border-purple-600 p-4 shadow-lg mb-4 animate-in fade-in duration-200">
-                <h3 className="text-sm font-medium mb-3 text-purple-300 flex items-center">
+            <div className="bg-gray-800 rounded-lg border border-red-600 p-4 shadow-lg mb-4 animate-in fade-in duration-200">
+                <h3 className="text-sm font-medium mb-3 text-red-300 flex items-center">
                     <Import className="w-4 h-4 mr-2" />
                     Import Existing Wallet
                 </h3>
@@ -152,7 +152,7 @@ export function Genwallet(){
                         setError("")
                     }}
                     placeholder="Enter your mnemonic phrase here (e.g., word1 word2 word3 ...)"
-                    className="w-full bg-gray-900 text-gray-100 p-3 rounded border border-gray-700 focus:border-purple-500 focus:outline-none font-mono text-xs min-h-[100px] resize-y"
+                    className="w-full bg-gray-900 text-gray-100 p-3 rounded border border-red-700 focus:border-red-500 focus:outline-none font-mono text-xs min-h-[100px] resize-y"
                 />
                 {error && (
                     <div className="mt-2 text-xs text-red-400 bg-red-950/50 border border-red-800 rounded p-2">
