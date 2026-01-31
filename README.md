@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+So a wallet stores keys which allows you to prove ownership of funds and sign transactions.
+This is a web based wallet for solana.
+In the old times wallets only stored one private key and if you loose that key you loose your wallet which cannot be recovered.
+HD or **Hierarchical Deterministic** Wallets solved this problem,
+In this we can generate multiple keys from a single seed phrase.
+A mnemonic phrase or a seed phrase is a string of 12 or 24 words which is used to generate a cryptographic seed.
+From this cryptographic seed we can create multiple number of public and private keypairs . Now even if we loose our private keys these can be regenrated with the mnemonic phrase.
 
-## Getting Started
+Lets understand the code
+This generates the 12 or 24 word string
+const m = generateMnemonic(); // you must store this as this is the only way to recover wallets.
 
-First, run the development server:
+using this mneomonic we generate the cryptographic seed 
+const s = mnemonicToSeedSync(m) 
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Now to generate multiple wallets we need public and private keys , for that we neeed derivation paths 
+**Derivation paths** specify a systematic way to derive various keys from the seed,
+for solana the path looks like :- m / 44' / 501' / 0' / 0'
+the 44 stands for the purpose (bip-44)
+501 stands for the coin type(solana)
+the next 0 stands for the account index(the nth account)
+the next 0 is the address index it usually stays 0 as far as I know.
+const path = `m/44'/501'/${currentIndex}'/0'`;
+const deriveSeed = derivePath(path, seed.toString("hex")).key;
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+from this derivedSeed we generate the public and private keys
+const keypair = Keypair.fromSeed(deriveSeed);
+const publicKey = keypair.publicKey.toBase58();
+const privateKey = keypair.secretKey;
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Now how to recover the wallets if we loose them you just need your **mneominc**
+Lets first validate the user input mnemonic
+if (!validateMnemonic(userInput)) {
+            setError("Invalid mnemonic phrase. Please check and try again.")
+            return
+}
+Then generate the seed from this mnemonic like we did earlier
+const s = mnemonicToSeedSync(userInput)
+Most wallets automatically derive the first wallet and leave the rest for the user
+const path = `m/44'/501'/0'/0'`
+const deriveSeed = derivePath(path, s.toString("hex")).key
+const keypair = Keypair.fromSeed(deriveSeed)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+        
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
